@@ -7,6 +7,8 @@ p_dx=0
 p_dy=0
 p_dir=false
 p_animate=1
+p_jump=false --airborne = true, on land = false
+p_sprite_offset=1 --1 for normal, 0 for jump
 
 function _init()
  cls()
@@ -16,13 +18,25 @@ function _init()
 	camera()
 end
 
+function jump()
+	p_animate+=1
+	if(p_animate>3)p_animate=1
+	if(p_dy<8)p_dy+=0.65
+	if(p_dy>0 and (fget(mget(flr(p_x/8),ceil(p_y/8)+1+p_sprite_offset),0) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+1+p_sprite_offset),0))) then
+		p_jump=false
+		p_sprite_offset=1
+		p_dy=0
+		p_y=ceil(p_y/8-1)*8
+	end
+end
+
 function slope_fix()
-	if(mget(flr(p_x/8),ceil(p_y/8)+2)==65) p_y=ceil(p_y/8)*8
-	if(fget(mget(flr(p_x/8),ceil(p_y/8)+2),7) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+2),7)) then
+	if(mget(flr(p_x/8),ceil(p_y/8)+1+p_sprite_offset)==65) p_y=ceil(p_y/8)*8
+	if(fget(mget(flr(p_x/8),ceil(p_y/8)+1+p_sprite_offset),7) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+1+p_sprite_offset),7)) then
 		while true do
 			for i=flr(p_x),flr(p_x+7) do
 				in_ground=false
-				p=pget(i,p_y+16)
+				p=pget(i,p_y+8+(p_sprite_offset*8))
 				if(p==3 or p==4 or p==9 or p==11) then
 					in_ground=true
 					break
@@ -33,11 +47,11 @@ function slope_fix()
 			else p_y+=1 end
 		end
 	end
-	if(fget(mget(flr(p_x/8),ceil(p_y/8)+1),7) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+1),7)) then
+	if(fget(mget(flr(p_x/8),ceil(p_y/8)+p_sprite_offset),7) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+p_sprite_offset),7)) then
 		while true do
 			for i=flr(p_x),flr(p_x+7) do
 				in_ground=false
-				p=pget(i,p_y+15)
+				p=pget(i,p_y+7+(p_sprite_offset*8))
 				if(p==3 or p==4 or p==11) then
 					in_ground=true
 					break
@@ -51,23 +65,25 @@ function slope_fix()
 end
 
 function _update()
-	if(p_dx==0) then
-		p_animate=1
-	else
-		p_animate += 1
-		if(p_animate>5)p_animate=2
-	end
-	if(not(btn(0) or btn(1))) then
-		m=mget(flr(p_x/8+0.5),ceil(p_y/8)+2)
-		if(fget(m,6)) then
-			if(p_dx<0)p_dx+=0.5
-			p_dx=min(p_dx+0.1,3)
-		elseif(fget(m,5)) then 
-			if(p_dx>0)p_dx-=0.5
-			p_dx=max(p_dx-0.1,-3)
+	if(not p_jump) then
+		if(p_dx==0) then
+			p_animate=1
 		else
-			if(p_dx>0)p_dx=max(p_dx-0.8,0)
-			if(p_dx<0)p_dx=min(p_dx+0.8,0)
+			p_animate += 1
+			if(p_animate>3)p_animate=2
+		end
+		if(not(btn(0) or btn(1))) then
+			m=mget(flr(p_x/8+0.5),ceil(p_y/8)+1+p_sprite_offset)
+			if(fget(m,6)) then
+				if(p_dx<0)p_dx+=0.5
+				p_dx=min(p_dx+0.1,3)
+			elseif(fget(m,5)) then 
+				if(p_dx>0)p_dx-=0.5
+				p_dx=max(p_dx-0.1,-3)
+			else
+				if(p_dx>0)p_dx=max(p_dx-0.8,0)
+				if(p_dx<0)p_dx=min(p_dx+0.8,0)
+			end
 		end
 	end
 	if(btn(0)) then
@@ -85,15 +101,37 @@ function _update()
 			p_dir=false
 		end
 	end
+	if(btn(4)) then
+		if(not p_jump) then
+			p_jump=true
+			p_sprite_offset=0
+			p_dy=-7
+		end
+	end
 	p_ub=mget(ceil((p_x)/8),ceil(p_y/8)) --upper body collision sprite
-	p_lb=mget(ceil((p_x)/8),ceil(p_y/8)+1) --lower body collision sprite
+	p_lb=mget(ceil((p_x)/8),ceil(p_y/8)+p_sprite_offset) --lower body collision sprite
+	p_bottom=mget(ceil((p_x/8)),ceil(p_y/8)+1+p_sprite_offset) --surface sonic is on
+	
 	if(p_ub==114 or p_lb==114) p_dx=-16
 	p_x+=p_dx
+	
 	if(p_x<0) then
 		p_x=0
 		p_dx=0
 	end
+	
+	if(p_jump) jump()
 	slope_fix()
+	
+	if(not(fget(p_bottom,0) or fget(p_lb,0))) then
+		if(not p_jump) then
+			p_jump=true
+			p_sprite_offset=0
+			p_dy=1
+		end
+	end
+	
+	p_y+=p_dy
 end
 
 function _draw()
@@ -104,7 +142,11 @@ function _draw()
 	map(0,32,0,0,128,16)
 	camera(cam_x,cam_y)
 	map(0,0,0,0,128,16)
-	spr(p_animate,p_x,p_y,1,2,p_dir)
+	if(p_jump) then
+		spr(16*p_animate,p_x,p_y,1,1,p_dir)
+	else
+		spr(p_animate,p_x,p_y,1,2,p_dir)
+	end
 end
 __gfx__
 55555555511155155111551551115515511155155111551500000000000000000000000000000000000000000000000000000000000000000000000000000000
