@@ -32,6 +32,10 @@ function _init()
 end
 
 function win()
+	if(p_jump) then
+		jump()
+		return
+	end
 	if(p_x<496) then
 		p_x+=p_dx
 		p_animate += 1
@@ -403,7 +407,7 @@ function _draw()
 	spr(115,0,0)
 	print(""..num_rings,10,1,7)
 	if(p_wintext) then
-		print("YOU WIN!",32,64,7)
+		print("YOU WIN!",48,64,7)
 	end
 	camera(cam_x,cam_y)
 end
