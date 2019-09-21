@@ -30,6 +30,7 @@ function jump()
 	if(p_animate>3)p_animate=1
 	if(p_dy<8)p_dy+=0.6
 	if(fget(mget(flr(p_x/8),ceil(p_y/8)+1+p_sprite_offset+p_map_offset),1) or (p_dy>0 and (fget(mget(flr(p_x/8),ceil(p_y/8)+1+p_sprite_offset+p_map_offset),0) or fget(mget(flr(p_x/8)+1,ceil(p_y/8)+1+p_sprite_offset+p_map_offset),0)))) then
+		slope_fix()
 		p_jump=false
 		p_sprite_offset=1
 		p_dy=0
