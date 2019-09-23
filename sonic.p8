@@ -166,7 +166,7 @@ function collisions()
 	p_topm=mget(flr((p_x-1)/8)+1,ceil(p_y/8)-1+p_map_offset)
 	p_bottomm=mget(flr((p_x-1)/8)+1,ceil(p_y/8)+1+p_sprite_offset+p_map_offset)
 
-	--coins
+	--rings
 	if(p_ub==115) then
 		mset(ceil((p_x)/8),ceil(p_y/8)+p_map_offset,0)
 		num_rings+=1
@@ -183,12 +183,12 @@ function collisions()
 		mset(flr((p_x-1)/8),ceil(p_y/8)+p_sprite_offset+p_map_offset,0)
 		num_rings+=1
 	end
-	if(mget(ceil(p_x/8),flr((p_y-7)/8)+p_map_offset)==115) then
-		mset(ceil(p_x/8),flr((p_y-7)/8)+p_map_offset,0)
+	if(mget(ceil(p_x/8),flr((p_y-1)/8)+p_map_offset)==115) then
+		mset(ceil(p_x/8),flr((p_y-1)/8)+p_map_offset,0)
 		num_rings+=1
 	end
-	if(mget(flr((p_x-1)/8),flr((p_y-7)/8)+p_map_offset)==115) then
-		mset(flr((p_x-1)/8),flr((p_y-7)/8)+p_map_offset,0)
+	if(mget(flr((p_x-1)/8),flr((p_y-1)/8)+p_map_offset)==115) then
+		mset(flr((p_x-1)/8),flr((p_y-1)/8)+p_map_offset,0)
 		num_rings+=1
 	end
 
@@ -411,6 +411,9 @@ function _draw()
 	end
 	camera(cam_x,cam_y)
 end
+
+--All sprites are custom-made, inspired by Sonic the Hedgehog on the Sega Master System
+
 __gfx__
 55555555511155155111551551115515511155155111551555555555555551151111555555555000000000000000000000000000000000000000000000000000
 555555551ccc11c11ccc11c11ccc11c11ccc11c11ccc11c15555555555551cc1ccc1555555555000000000000000000000000000000000000000000000000000
